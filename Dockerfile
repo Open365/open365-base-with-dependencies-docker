@@ -14,7 +14,7 @@ RUN     apt-get update && \
             sudo \
             pyqt5-dev-tools && \
         mkdir -p /code && cd /code && \
-        git clone https://bitbucket.org/eyeos/open365-services.git && \
+        git clone https://github.com/Open365/open365-services.git && \
         cd /code/open365-services && npm install && \
         cd /root && npm install && \
         npm install -g json && \
