@@ -1,0 +1,154 @@
+#!/bin/bash
+
+set -e
+set -u
+set -o pipefail
+
+# so wildcard patterns that produce no expansions are converted to null instead
+# of the pattern wildcard itself
+shopt -s nullglob
+
+usage() {
+	ERROR=
+	if [ "$#" -gt 0 ]
+	then
+		ERROR="Error: $*"
+	fi
+
+	cat <<-USAGE | fmt -w 79
+		Usage: $0 DAV_MOUNTPOINT USER_HOME
+
+This command bind-mounts all folders (libraries) present on
+DAV_MOUNTPOINT to USER_HOME. This is done to avoid the user having
+direct contact with the webdav root, as seafile's DAV backend has some
+problems when saving files directly (ie. it does not raise an error but
+it also doesn't save any file there).
+	USAGE
+}
+
+error() {
+	echo "ERROR: $*" >&2
+}
+
+mount_libraries() {
+	# remove trailing slashes
+	local dav_mount="${1%/}"
+	local dest="${2%/}"
+	local library
+	local newmount
+
+	for library in "$dav_mount"/*/
+	do
+		library="${library%/}"
+		local libname="$(basename "$library")"
+		local newmount="$dest/$libname"
+		if [ -d "$newmount" ]
+		then
+			if mountpoint -q "$newmount"
+			then
+				continue
+			else
+				# if it is not a mountpoint, it is a remnant from another session
+				# remove it and it will be created and mounted now
+				rm -rf "$newmount"
+			fi
+		fi
+
+		if [ "$libname" = "lost+found" ]
+		then
+			continue
+		fi
+		mkdir "$newmount"
+		# do the mounting. We do it in a subshell to set -x only for
+		# that command
+		(
+			set -x
+			mount -o bind "$library" "$newmount" || rmdir "$newmount" || true
+		)
+	done
+}
+
+remove_old_libraries_from_user_space() {
+	# remove trailing slashes
+	local dav_mount="${1%/}"
+	local dest="${2%/}"
+
+	for library in "$dest"/*/
+	do
+		library="${library%/}"
+		local libname="$(basename "$library")"
+		local davlib="$dav_mount/$libname"
+		if [ ! -d "$davlib" ]
+		then
+			# remove old library in user space
+			(
+				set -x
+				mountpoint -q "$dest/$libname" && umount "$dest/$libname" || true
+				rmdir "$dest/$libname" || true
+			)
+		fi
+	done
+}
+
+polling=1
+
+OUTOPT=$(getopt --options h: --long help,no-polling,polling -n "$0" -- "$@")
+
+eval set -- "$OUTOPT"
+
+while true
+do
+	case "$1" in
+	-h|--help)
+		usage
+		exit 0
+		;;
+	--no-polling)
+		polling=
+		shift
+		;;
+	--polling)
+		polling=1
+		shift
+		;;
+	--)
+		# end of processed getopt options, break the loop
+		shift
+		break
+		;;
+	*)
+		ERROR=$[ ( $RANDOM % 10000 ) + 1 ]
+		fatal $"Unexpected error: code %s\n" "$ERROR"
+		break
+		;;
+	esac
+done
+
+if [ "$#" -ne 2 ]
+then
+	usage "Wrong number of params" >&2
+	exit 1
+fi
+
+if [ ! -d "$1" ]
+then
+	error "$1 is not a folder"
+	exit 1
+fi
+
+if [ ! -d "$2" ]
+then
+	error "$2 is not a folder"
+	exit 1
+fi
+
+while true
+do
+	mount_libraries "$1" "$2"
+	remove_old_libraries_from_user_space "$1" "$2"
+	if [ ! "$polling" ]
+	then
+		break
+	fi
+	sleep 5
+done
