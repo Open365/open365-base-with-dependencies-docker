@@ -1,8 +1,6 @@
 FROM    docker-registry.eyeosbcn.com/open365-base
 
 ## Install open365-services
-COPY    npmrc /root/.npmrc
-COPY    netrc /root/.netrc
 COPY    package.json /root/
 RUN     apt-get update && \
         DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
@@ -20,8 +18,6 @@ RUN     apt-get update && \
         npm install -g json && \
         /code/open365-services/install.sh && \
         ln -s /usr/bin/env /bin/env && \
-        rm /root/.netrc && \
-        rm /root/.npmrc && \
         apt-get purge -y build-essential
 
 # locale generation
