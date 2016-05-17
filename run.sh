@@ -80,7 +80,9 @@ if [[ ! -f /home/$SPICE_USER/.eyeosConfigured ]]; then
 fi
 
 #su $SPICE_USER -c "/usr/bin/Xorg -config /etc/X11/spiceqxl.xorg.conf -logfile  /home/$SPICE_USER/.Xorg.2.log :2 &" 2>/dev/null
-
+if [ -z "$LANG" ]; then
+    LANG=en_US.UTF-8
+fi
 /usr/sbin/locale-gen $LANG
 
 rm /tmp/.X2-lock | true
