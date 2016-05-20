@@ -106,6 +106,8 @@ service cups restart
 echo "export EYEOS_UNIX_USER=$EYEOS_UNIX_USER" > /tmp/global.env
 echo "export BUS_ADDRESS_HOST=$BUS_ADDRESS_HOST" >> /tmp/global.env
 echo "export BUS_SUBSCRIPTION=$BUS_SUBSCRIPTION" >> /tmp/global.env
+echo "export EYEOS_BUS_MASTER_PASSWD=$EYEOS_BUS_MASTER_PASSWD" >> /tmp/global.env
+echo "export EYEOS_BUS_MASTER_USER='$EYEOS_BUS_MASTER_USER'" >> /tmp/global.env
 
 # WebDav
 export WEBDAV_URL="http://${WEBDAV_HOST:-$AMQP_BUS_HOST}:8080"
