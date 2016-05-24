@@ -154,7 +154,7 @@ var killOffice = function() {
     }, closeAppWaitingTime);
 };
 
-if (['writer', 'calc', 'presentation'].indexOf(application) !== -1) {
+if (officeApps.indexOf(application) !== -1) {
     shell.spawn("autosave.py", [], {detached: true});
 }
 
