@@ -154,7 +154,7 @@ var killOffice = function() {
     }, closeAppWaitingTime);
 };
 
-if (officeApps.indexOf(application) !== -1) {
+if (process.env['ENABLE_LIBREOFFICE_AUTOSAVE']  === 'true' &&
+    officeApps.indexOf(application) !== -1) {
     shell.spawn("autosave.py", [], {detached: true});
 }
-
