@@ -86,7 +86,7 @@ fi
 /usr/sbin/locale-gen $LANG
 
 rm /tmp/.X2-lock | true
-su $SPICE_USER -c "Xspice --jpeg-wan-compression=always --vdagent :2 &"
+su $SPICE_USER -c "Xspice --deferred-fps 30 --streaming-video all --jpeg-wan-compression=always --vdagent :2 &"
 
 export DISPLAY=":2"
 until xset -q
