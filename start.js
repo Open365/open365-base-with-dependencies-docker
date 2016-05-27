@@ -141,6 +141,7 @@ var killOffice = function() {
     console.log('Killing libreoffice abruptly');
 
     var shutdownCommand = 'find /home/user -name ".~lock*" -exec rm {} \\; && pkill soffice';
+    shutdownCommand += " && sed -i.bck '/PickList/d' /home/user/.config/libreoffice/4/user/registrymodifications.xcu";
     shell.exec(shutdownCommand, function() {
         console.log('.~lock file removed', arguments);
         console.log('Libreoffice killed');
