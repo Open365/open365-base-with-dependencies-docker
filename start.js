@@ -34,6 +34,16 @@ var timer = 0;
 var username = process.env['EYEOS_USER'] + '@' + process.env['EYEOS_DOMAIN'];
 var token = process.env['EYEOS_TOKEN'];
 
+var uid = parseInt(process.env['SPICE_UID'], 10);
+var gid = parseInt(process.env['SPICE_GID'], 10);
+
+var libreoffice_scripts_settings = {
+    detached: true,
+    stdio: ["ignore", process.stdout, process.stderr],
+    uid: isNaN(uid) ? 1000 : uid,
+    gid: isNaN(gid) ? 1000 : gid
+};
+
 timer = setTimeout(function() {
     doShutdown();
 }, 60000);
@@ -63,7 +73,7 @@ var waitUtilDisconnect = function(data) {
     } else if (output.indexOf(clientDisconnected) > -1) {
         // process client disconnect
         console.log('Client disconnected! :(');
-
+        shell.spawn("save.py", [], libreoffice_scripts_settings);
         timer = setTimeout(function() {
             doShutdown();
         }, reconnectWaitingTime);
@@ -156,13 +166,5 @@ var killOffice = function() {
 
 if (process.env['ENABLE_LIBREOFFICE_AUTOSAVE']  === 'true' &&
     officeApps.indexOf(application) !== -1) {
-    var autosave_process_options = {
-        detached: true,
-        stdio: [
-            'ignore',
-            process.stdout,
-            process.stderr
-        ]
-    };
-    shell.spawn("autosave.py", [], autosave_process_options);
+    shell.spawn("autosave.py", [], libreoffice_scripts_settings);
 }
