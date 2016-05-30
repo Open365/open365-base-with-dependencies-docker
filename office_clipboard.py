@@ -8,7 +8,7 @@ import threading
 from PyQt5.QtCore import pyqtSlot
 from PyQt5.QtGui import QGuiApplication, QClipboard
 
-def getSelectedTextWriter():
+def getSelectedTextWriter(desktop):
     # Get LibreOffice Doc from DESKTOP
     doc = desktop.getCurrentComponent();
     controller = doc.getCurrentController();
@@ -18,7 +18,7 @@ def getSelectedTextWriter():
     if selectedText:
         return selectedText
 
-def getSelectedTextCalc():
+def getSelectedTextCalc(desktop):
     # Get LibreOffice Doc from DESKTOP
     doc = desktop.getCurrentComponent();
     controller = doc.getCurrentController();
@@ -34,24 +34,24 @@ getSelectedTextFuncs = {
     'calc': getSelectedTextCalc
 }
 
-getSelectedText = getSelectedTextFuncs[sys.argv[1]]
+def getSelectedText():
+    connected = False
+    while not connected:
+        try:
+            # Establish a connection with the LO API Service
+            localContext = uno.getComponentContext();
+            resolver = localContext.ServiceManager.createInstanceWithContext("com.sun.star.bridge.UnoUrlResolver", localContext);
+            ctx = resolver.resolve("uno:pipe,name=open365_LO;urp;StarOffice.ComponentContext");
+            smgr = ctx.ServiceManager;
+            connected = True;
+        except Exception:
+            time.sleep(0.5);
+
+    desktop = smgr.createInstanceWithContext("com.sun.star.frame.Desktop", ctx);
+    getSelectedTextFunc = getSelectedTextFuncs[sys.argv[1]]
+    return getSelectedTextFunc(desktop)
 
 lock = threading.Lock()
-
-connected = False
-
-while not connected:
-    try:
-        # Establish a connection with the LO API Service
-        localContext = uno.getComponentContext();
-        resolver = localContext.ServiceManager.createInstanceWithContext("com.sun.star.bridge.UnoUrlResolver", localContext);
-        ctx = resolver.resolve("uno:socket,host=localhost,port=2002;urp;StarOffice.ComponentContext");
-        smgr = ctx.ServiceManager;
-        connected = True;
-    except Exception:
-        time.sleep(1);
-
-desktop = smgr.createInstanceWithContext("com.sun.star.frame.Desktop", ctx);
 
 def textCopied():
     with lock:
