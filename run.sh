@@ -174,14 +174,6 @@ su $SPICE_USER -c "DISPLAY=:2 setxkbmap -model pc105 -layout es || true"
 # Before launching libreoffice we need to remove the recent file list
 sed -i.bck '/PickList/d' /home/user/.config/libreoffice/4/user/registrymodifications.xcu
 
-# Remove the Libreoffice config once
-# We reverted from LO 5.1 to 5.0, and certain config values break LO
-# For now lets just remove everyone LO config :(
-if [ ! -f /home/user/.config/open365_LO_deleted_1_Jun_2016 ]; then
-    touch /home/user/.config/open365_LO_deleted_1_Jun_2016
-    rm -rf  /home/user/.config/libreoffice
-fi
-
 export $ENVARS
 
 # Run migrations if exists
