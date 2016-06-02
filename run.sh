@@ -183,4 +183,10 @@ if [ ! -f /home/user/.config/open365_LO_deleted_1_Jun_2016 ]; then
 fi
 
 export $ENVARS
+
+# Run migrations if exists
+if [ -x /usr/bin/open365-migrations ]; then
+    /usr/bin/open365-migrations
+fi
+
 cd "$WORKING_DIRECTORY" && sudo -E -u "$SPICE_USER" DISPLAY=:2 "$@"
