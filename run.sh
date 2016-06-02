@@ -57,7 +57,7 @@ if [[ ! -f /home/$SPICE_USER/.eyeosConfigured ]]; then
 	cp /root/.gtkrc-2.0 .
 	cp /etc/skel/.config/ratpoisonrc .ratpoisonrc
 	mkdir .config
-	cp /etc/skel/.config/* .config/
+	cp -r /etc/skel/.config/* .config/
 	mkdir .local
 	cp -r /etc/skel/.local/* .local/
 
