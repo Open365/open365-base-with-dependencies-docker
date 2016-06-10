@@ -172,8 +172,10 @@ su $SPICE_USER -c "DISPLAY=:2 ratpoison &"
 su $SPICE_USER -c "DISPLAY=:2 setxkbmap -model pc105 -layout es || true"
 
 # Before launching libreoffice we need to remove the recent file list
-sed -i.bck '/PickList/d' /home/user/.config/libreoffice/4/user/registrymodifications.xcu
-
+if [ -f /home/user/.config/libreoffice/4/user/registrymodifications.xcu ]
+then
+    sed -i.bck '/PickList/d' /home/user/.config/libreoffice/4/user/registrymodifications.xcu
+fi
 export $ENVARS
 
 # Run migrations if exists
