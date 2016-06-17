@@ -57,7 +57,7 @@ if [[ ! -f /home/$SPICE_USER/.eyeosConfigured ]]; then
 	cp /root/.gtkrc-2.0 .
 	cp /etc/skel/.config/ratpoisonrc .ratpoisonrc
 	mkdir .config
-	cp /etc/skel/.config/* .config/
+	cp -r /etc/skel/.config/* .config/
 	mkdir .local
 	cp -r /etc/skel/.local/* .local/
 
@@ -79,6 +79,8 @@ if [[ ! -f /home/$SPICE_USER/.eyeosConfigured ]]; then
 	touch /home/$SPICE_USER/.eyeosConfigured
 fi
 
+chown -R 1000:1000 /home/$SPICE_USER/.config/libreoffice
+
 #su $SPICE_USER -c "/usr/bin/Xorg -config /etc/X11/spiceqxl.xorg.conf -logfile  /home/$SPICE_USER/.Xorg.2.log :2 &" 2>/dev/null
 if [ -z "$LANG" ]; then
     LANG=en_US.UTF-8
@@ -86,7 +88,7 @@ fi
 /usr/sbin/locale-gen $LANG
 
 rm /tmp/.X2-lock | true
-su $SPICE_USER -c "Xspice --jpeg-wan-compression=always --vdagent :2 &"
+su $SPICE_USER -c "Xspice --deferred-fps 30 --streaming-video all --jpeg-wan-compression=always --vdagent :2 &"
 
 export DISPLAY=":2"
 until xset -q
@@ -106,6 +108,8 @@ service cups restart
 echo "export EYEOS_UNIX_USER=$EYEOS_UNIX_USER" > /tmp/global.env
 echo "export BUS_ADDRESS_HOST=$BUS_ADDRESS_HOST" >> /tmp/global.env
 echo "export BUS_SUBSCRIPTION=$BUS_SUBSCRIPTION" >> /tmp/global.env
+echo "export EYEOS_BUS_MASTER_PASSWD=$EYEOS_BUS_MASTER_PASSWD" >> /tmp/global.env
+echo "export EYEOS_BUS_MASTER_USER='$EYEOS_BUS_MASTER_USER'" >> /tmp/global.env
 
 # WebDav
 export WEBDAV_URL="http://${WEBDAV_HOST:-$AMQP_BUS_HOST}:8080"
@@ -127,7 +131,7 @@ then
 else
 	WEBDAV_MOUNT_POINT="/home/$SPICE_USER/files"
 	WORKING_DIRECTORY="$WEBDAV_MOUNT_POINT"
-	ENVARS="$ENVARS HOME=/home/$SPICE_USER"
+	ENVARS="$ENVARS HOME=$WEBDAV_MOUNT_POINT"
 fi
 
 export WEBDAV_MOUNT_POINT
@@ -169,5 +173,16 @@ su $SPICE_USER -c "DISPLAY=:2 /code/open365-services/src/clipboardData.js $1 &"
 su $SPICE_USER -c "DISPLAY=:2 ratpoison &"
 su $SPICE_USER -c "DISPLAY=:2 setxkbmap -model pc105 -layout es || true"
 
+# Before launching libreoffice we need to remove the recent file list
+if [ -f /home/user/.config/libreoffice/4/user/registrymodifications.xcu ]
+then
+    sed -i.bck '/PickList/d' /home/user/.config/libreoffice/4/user/registrymodifications.xcu
+fi
 export $ENVARS
+
+# Run migrations if exists
+if [ -x /usr/bin/open365-migrations ]; then
+    /usr/bin/open365-migrations
+fi
+
 cd "$WORKING_DIRECTORY" && sudo -E -u "$SPICE_USER" DISPLAY=:2 "$@"

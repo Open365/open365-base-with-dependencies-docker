@@ -32,6 +32,7 @@ COPY    system_clipboard.py /usr/bin/system_clipboard.py
 COPY    office_clipboard.py /usr/bin/office_clipboard.py
 COPY    davfs2.conf /etc/davfs2/davfs2.conf
 COPY    bind-mount-libraries /root/
+COPY    apparmor/usr.sbin.cupsd /etc/apparmor.d/
 
 VOLUME  ["/home"]
 EXPOSE  5900
